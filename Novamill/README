@@ -1,3 +1,8 @@
 Configurations for a Novamill 3-axis CNC mill
 
+Control computer: BeagleBone Black with Probotix PBX-BB cape
+
+Additional info:
+Using Geckodrive 201x stepper drivers
+
 SC May 2015
