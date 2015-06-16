@@ -117,12 +117,12 @@ setp hpg.stepgen.03.control-type 1
 
 ###More needed here or possibly in ini file to sort out scaling of speed
 
-net SpindleOn motion.spindle-on
 net spindle-rpm-cmd motion.spindle-speed-out
 net spindle-rpm-cmd => hpg.stepgen.03.velocity-cmd
 
 #set up spindle on pin
-
+#not convinced this is correct but both lines below needed for control from EMC
+net SpindleOn motion.spindle-on
 net SpindleOn => bb_gpio.p8.out-13
 
 ##########################################
