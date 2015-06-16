@@ -119,11 +119,11 @@ setp hpg.stepgen.03.control-type 1
 
 net SpindleOn motion.spindle-on
 net spindle-rpm-cmd motion.spindle-speed-out
-linksp spindle-rpm-cmd => hpg.stepgen.03.velocity-cmd
+net spindle-rpm-cmd => hpg.stepgen.03.velocity-cmd
 
 #set up spindle on pin
 
-linksp SpindleOn => bb_gpio.p8.out-13
+net SpindleOn => bb_gpio.p8.out-13
 
 ##########################################
 # set up the home and limit switches
