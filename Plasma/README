@@ -1,0 +1,17 @@
+Configurations for a Novamill 3-axis CNC mill
+
+Control computer: BeagleBone Black with Probotix PBX-BB cape
+
+Computer running Machinekit with AXIS front-end
+
+Additional info:
+Using Geckodrive 201x stepper drivers for axes XYZ
+Using DIYCNC Spindle V5 board for spindle control
+
+
+SC May 2015
+
+#####
+Note that these config files come WITHOUT ANY WARRANTY; without even the implied warranty of
+MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.
+#####
