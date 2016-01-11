@@ -1,7 +1,6 @@
 ##################################################
-# MODIFIED configuration for 2 axis CNC Plasma cutting machine
+# MODIFIED configuration for 3-axis CNC Mill
 # Originally modified from example Comet.hal provided with Machinekit
-# then modified from Novamill0.hal used for AB in house Novamill (May 2015)
 ##################################################
 
 # Launch the setup script to make sure hardware setup looks good
@@ -17,7 +16,7 @@ loadrt trivkins
 loadrt tp
 loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]SERVO_PERIOD traj_period_nsec=[EMCMOT]SERVO_PERIOD key=[EMCMOT]SHMEM_KEY num_joints=[TRAJ]AXES tp=tp kins=trivkins
 
-loadrt hal_bb_gpio output_pins=242 input_pins=108,115,118
+loadrt hal_bb_gpio output_pins=113,242 input_pins=108,114,115,117,118
 loadrt [PRUCONF](DRIVER) prucode=$(HAL_RTMOD_DIR)/[PRUCONF](PRUBIN) [PRUCONF](CONFIG) halname=hpg
 
 addf hpg.capture-position 		  servo-thread
@@ -37,7 +36,7 @@ setp bb_gpio.p8.in-08.invert 1 #Y limit
 #setp bb_gpio.p8.in-14.invert 1 #Z limit
 setp bb_gpio.p8.in-15.invert 1 #this was 1, according to setup.sh this is estop pin
 #setp bb_gpio.p8.in-17.invert 1 #A limit
-setp bb_gpio.p8.in-18.invert 1 #X limit
+setp bb_gpio.p8.in-18.invert 0 #X limit
 
 
 ########################################################
@@ -78,53 +77,20 @@ net yenable axis.1.amp-enable-out => hpg.stepgen.01.enable
 setp hpg.stepgen.01.steppin         144 #144
 setp hpg.stepgen.01.dirpin          145 #145
 
-# z-axis
+########################################################
+# torch height via h-bridge (not in Axis GUI!)
+########################################################
 
-#setp hpg.stepgen.02.position-scale [AXIS_2]SCALE
-#setp hpg.stepgen.02.steplen 1
-#setp hpg.stepgen.02.stepspace 1
-#setp hpg.stepgen.02.dirhold 2
-#setp hpg.stepgen.02.dirsetup 1
-#setp hpg.stepgen.02.maxaccel [AXIS_2]STEPGEN_MAXACCEL
-#net zpos-cmd axis.2.motor-pos-cmd => hpg.stepgen.02.position-cmd
-#net zpos-fb hpg.stepgen.02.position-fb => axis.2.motor-pos-fb
-#net zenable axis.2.amp-enable-out => hpg.stepgen.02.enable
+setp hpg.pwmgen.00.pwm_period   500000
+setp hpg.pwmgen.00.out.00.pin   78
+setp hpg.pwmgen.00.out.01.pin   149
 
-#setp hpg.stepgen.02.steppin         39
-#setp hpg.stepgen.02.dirpin          149
+net torch.unlock bb_gpio.p9.out-42
+net torch.unlock hpg.pwmgen.00.out.00.enable
+net torch.unlock hpg.pwmgen.00.out.01.enable
 
-#############################################
-# a-axis (for spindle drive control)
-#############################################
-
-#set parameters for pin
-
-#setp hpg.stepgen.03.steppin         52
-#setp hpg.stepgen.03.dirpin          147
-
-#setp hpg.stepgen.03.position-scale [AXIS_3]SCALE
-#setp hpg.stepgen.03.steplen 1
-#setp hpg.stepgen.03.stepspace 1
-#setp hpg.stepgen.03.dirhold 2
-#setp hpg.stepgen.03.dirsetup 1
-
-#setp hpg.stepgen.03.enable 1
-
-#set step type to velocity
-
-#setp hpg.stepgen.03.control-type 1
-
-# set up spindle speed
-
-###More needed here or possibly in ini file to sort out scaling of speed
-
-#net spindle-rpm-cmd motion.spindle-speed-out
-#net spindle-rpm-cmd => hpg.stepgen.03.velocity-cmd
-
-#set up spindle on pin
-#not convinced this is correct but both lines below needed for control from EMC
-#net SpindleOn motion.spindle-on
-#net SpindleOn => bb_gpio.p8.out-13
+net torch.up    hpg.pwmgen.00.out.01.value
+net torch.down  hpg.pwmgen.00.out.00.value
 
 ##########################################
 # set up the home and limit switches
@@ -143,19 +109,24 @@ net switches-y          => axis.1.home-sw-in
 #net switches-z         => axis.2.pos-lim-sw-in
 
 
-##################################################
-# connect the air line to the flood coolant signal
-##################################################
-
-#net flood => iocontrol.0.coolant-flood
-#net flood => bb_gpio.p8.out-13
-
 ##########################
 # set up the e-stop switch
 ##########################
 
 net estop-ext <= bb_gpio.p8.in-15
 net estop-ext => iocontrol.0.emc-enable-in
+
+##########################
+# set up plasma control
+##########################
+
+setp		bb_gpio.p8.out-13.invert 0	
+net plasma.on	motion.spindle-on
+net plasma.on	bb_gpio.p8.out-13
+
+setp		bb_gpio.p8.in-17.invert 1
+net arc.ok	bb_gpio.p8.in-17
+net arc.ok	motion.spindle-at-speed
 
 ####################
 # manual tool change
@@ -166,5 +137,4 @@ net tool-change iocontrol.0.tool-change => hal_manualtoolchange.change
 net tool-changed iocontrol.0.tool-changed <= hal_manualtoolchange.changed
 net tool-number iocontrol.0.tool-prep-number => hal_manualtoolchange.number
 net tool-prepare-loopback iocontrol.0.tool-prepare => iocontrol.0.tool-prepared
-
 
