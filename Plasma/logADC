@@ -1,0 +1,10 @@
+MACHINEKIT - 0.1
+Machine configuration directory is '/home/machinekit/machinekit/configs/cnc-configs/Plasma'
+Machine configuration file is 'Plasma0.ini'
+Starting Machinekit...
+io started
+halcmd loadusr io started
+cape-universal overlay found
+task pid=15737
+emcTaskInit: using builtin interpreter
+Shutting down and cleaning up Machinekit...

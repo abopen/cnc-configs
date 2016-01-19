@@ -45,6 +45,7 @@ for DTBO in cape-universal ; do
 	fi
 done;
 
+
 if [ ! -r /sys/class/uio/uio0 ] ; then
 	echo PRU control files not found in /sys/class/uio/uio0 >&2
 	exit 1;
@@ -94,5 +95,10 @@ sudo $(which config-pin) -f - <<- EOF
 
 	P9.42	low	# ZSTP
 	P9.92	in	# Reserved, connected to P9.42
+
+	P9.17   spi
+	P9.18   spi
+	P9.22   spi
+	P9.21   spi
 EOF
 

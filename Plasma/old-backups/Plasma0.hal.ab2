@@ -12,30 +12,17 @@ loadusr -w ./setup.sh
 
 loadrt trivkins
 
-#loadrt threads period1=1200000 name1=test-thread
-
-
-
 # trajectory planner
 loadrt tp
-loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]SERVO_PERIOD traj_period_nsec=[EMCMOT]SERVO_PERIOD key=[EMCMOT]SHMEM_KEY num_joints=[TRAJ]AXES tp=tp kins=trivkins
+loadrt [EMCMOT]EMCMOT base_period_nsec=[EMCMOT]BASE_PERIOD servo_period_nsec=[EMCMOT]SERVO_PERIOD traj_period_nsec=[EMCMOT]SERVO_PERIOD key=[EMCMOT]SHMEM_KEY num_joints=[TRAJ]AXES tp=tp kins=trivkins
 
 loadrt hal_bb_gpio output_pins=113,242 input_pins=108,114,115,117,118
 loadrt [PRUCONF](DRIVER) prucode=$(HAL_RTMOD_DIR)/[PRUCONF](PRUBIN) [PRUCONF](CONFIG) halname=hpg
 
-# Load ADC stuff
-
-loadrt threads period1=10000000 name1=adc-thread
-
-#loadrt threads name3=adc-thread period1=1000000
+#loadrt threads name1=adc-thread period1=1000000
 loadrt spi3204
 #setp spi3204.0.tmax      4975625
-addf spi3204.0 adc-thread
-
-# Load THC component
-
-loadrt thc
-addf thc.0 servo-thread
+addf spi3204.0 servo-thread
 
 addf hpg.capture-position 		  servo-thread
 addf bb_gpio.read                         servo-thread
@@ -104,41 +91,36 @@ setp hpg.stepgen.02.dirhold 2
 setp hpg.stepgen.02.dirsetup 1
 setp hpg.stepgen.02.maxaccel [AXIS_2]STEPGEN_MAXACCEL
 #setp hpg.stepgen.02.maxvel [AXIS_2]STEPGEN_MAX_VEL
-
-#net zpos-cmd axis.2.motor-pos-cmd => hpg.stepgen.02.position-cmd
-#net zpos-fb hpg.stepgen.02.position-fb => axis.2.motor-pos-fb
+net zpos-cmd axis.2.motor-pos-cmd => hpg.stepgen.02.position-cmd
+net zpos-fb hpg.stepgen.02.position-fb => axis.2.motor-pos-fb
 net zenable axis.2.amp-enable-out => hpg.stepgen.02.enable
-
-# THC hooks
-
-net thc-pos-in axis.2.motor-pos-cmd => thc.0.z-pos-in 
-net thc-pos-out thc.0.z-pos-out => hpg.stepgen.02.position-cmd
-net thc-pos-fb-out thc.0.z-fb-out => axis.2.motor-pos-fb
-
 
 setp hpg.stepgen.02.steppin	39 #39
 setp hpg.stepgen.02.dirpin	149 #149
+
+
+
+########################################################
+# torch height via h-bridge (not in Axis GUI!)
+########################################################
+
+#setp hpg.pwmgen.00.pwm_period   500000
+#setp hpg.pwmgen.00.out.00.pin   78
+#setp hpg.pwmgen.00.out.01.pin   149
+
+#net torch.unlock bb_gpio.p9.out-42
+#net torch.unlock hpg.pwmgen.00.out.00.enable
+#net torch.unlock hpg.pwmgen.00.out.01.enable
+
+#net torch.up    hpg.pwmgen.00.out.01.value
+#net torch.down  hpg.pwmgen.00.out.00.value
 
 ###########################################
 #THC implementation using ADC feedback
 ###########################################
 
-# ADC input
+setp spi3204.0
 
-net thc-adc-raw spi3204.0.out thc.0.encoder-vel
-setp thc.0.scale-offset 0
-#setp thc.0.vel-scale 0.10539629
-setp thc.0.vel-scale 0.107743
-
-# Plasma arc 
-
-net plasma.on => thc.0.torch-on
-net arc.ok => thc.0.arc-ok
-
-# Motion
-
-net motion-cur-vel motion.current-vel => thc.0.current-vel
-net motion-req-vel motion.requested-vel => thc.0.requested-vel
 
 ##########################################
 # set up the home and limit switches
@@ -185,12 +167,4 @@ net tool-change iocontrol.0.tool-change => hal_manualtoolchange.change
 net tool-changed iocontrol.0.tool-changed <= hal_manualtoolchange.changed
 net tool-number iocontrol.0.tool-prep-number => hal_manualtoolchange.number
 net tool-prepare-loopback iocontrol.0.tool-prepare => iocontrol.0.tool-prepared
-
-# THC parameter hack!!!
-
-setp thc.0.volts-requested 115.0
-setp thc.0.voltage-tol 10.0
-#setp thc.0.correction-vel 0.0001 ## confirm??
-setp thc.0.correction-vel 1000
-setp thc.0.velocity-tol 70.0
 
