@@ -188,9 +188,16 @@ net tool-prepare-loopback iocontrol.0.tool-prepare => iocontrol.0.tool-prepared
 
 # THC parameter hack!!!
 
-setp thc.0.volts-requested 115.0
+#setp thc.0.volts-requested 115.0
+setp thc.0.volts-requested 150.0 # changed to be closer to previously monitored V reading of190-200V ish
 setp thc.0.voltage-tol 10.0
+
 #setp thc.0.correction-vel 0.0001 ## confirm??
-setp thc.0.correction-vel 1000
+#setp thc.0.correction-vel 1000 ##this crashed.. maybe too high?
+setp thc.0.correction-vel 0.001  ##trying more sensible value?
+
+#what is difference between this and next one down? this is parameter
 setp thc.0.velocity-tol 70.0
 
+#this is pin - but doesn't look like is used in icomp.. just left in / needs removing?
+#setp thc.vel-tol 70.0
